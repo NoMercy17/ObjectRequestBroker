@@ -16,7 +16,7 @@ public class ByteSender {
 
     public void deliver(Address destination, byte[] data) {
         try {
-            s = new Socket(destination.dest(), destination.port());
+            s = new Socket(destination.getHost(), destination.port());
             System.out.println("Sender: Socket" + s);
             oStr = s.getOutputStream();
             oStr.write(data.length);

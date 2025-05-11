@@ -1,19 +1,22 @@
-// InfoServer.java
 import RequestReply.*;
-import ByteSendReceive.*;
 import Commons.Address;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public class InfoServer {
     private final Replyer replyer;
-    private static final int PORT = 8080;
+    private static final int PORT = 8090; // Changed from 8080 to 8090
     private static final String SERVER_NAME = "InfoServer";
 
     public InfoServer() throws IOException {
-        Address serverAddr = new Address("localhost", PORT);
-        this.replyer = new Replyer(SERVER_NAME, serverAddr);
-        System.out.println(SERVER_NAME + " started on port " + PORT);
+        try {
+            Address serverAddr = new Address("localhost", PORT);
+            this.replyer = new Replyer(SERVER_NAME, serverAddr);
+            System.out.println(SERVER_NAME + " started on port " + PORT);
+        } catch (IOException e) {
+            System.err.println("Failed to create server socket: " + e.getMessage());
+            throw e; // Re-throw to signal failure
+        }
     }
 
     // Main operation handling method
@@ -21,14 +24,19 @@ public class InfoServer {
         System.out.println("Waiting for requests...");
         ByteStreamTransformer transformer = new InfoServerTransformer();
 
-        while (true) {
-            // Process incoming requests
-            replyer.receive_transform_send(transformer);
+        try {
+            while (true) {
+                // Process incoming requests
+                replyer.receive_transform_send(transformer);
+            }
+        } catch (Exception e) {
+            System.err.println("Error in server main loop: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
-     //Inner class with ByteStreamTransformer interface
-     //to process incoming requests and generate responses
+    //Inner class with ByteStreamTransformer interface
+    //to process incoming requests and generate responses
     private class InfoServerTransformer implements ByteStreamTransformer {
         @Override
         public byte[] transform(byte[] request) {

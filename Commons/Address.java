@@ -1,17 +1,46 @@
 package Commons;
 
 public class Address {
-    private final String destination;
-    private final int portNumber;
+    private final String host;
+    private final int port;
 
-    public Address(String dest, int port) {
-        this.destination = dest;
-        this.portNumber = port;
+    public Address(String host, int port) {
+        this.host = host;
+        this.port = port;
     }
-    public String dest(){
-        return destination;
+
+    // Methods used by ByteSender
+    public String getHost() {
+        return host;
     }
-    public int port(){
-        return portNumber;
+
+    public int getPort() {
+        return port;
+    }
+
+    // Method used by Replyer (keep for backward compatibility)
+    public int port() {
+        return port;
+    }
+
+    @Override
+    public String toString() {
+        return host + ":" + port;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+
+        Address other = (Address) obj;
+        return port == other.port && host.equals(other.host);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = host.hashCode();
+        result = 31 * result + port;
+        return result;
     }
 }

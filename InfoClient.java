@@ -51,7 +51,7 @@ public class InfoClient {
 
     public static void main(String[] args) {
         String serverHost = "localhost";
-        int serverPort = 8080;
+        int serverPort = 8090;
         String clientName = "InfoClient";
 
         if(args.length >= 1){
@@ -99,6 +99,7 @@ public class InfoClient {
                         }catch(NumberFormatException e){
                             result = "Invalid road ID format. Please enter a number.";
                         }
+                        break;
                     case "temp":
                         result = client.getTemp(parameter);
                         break;

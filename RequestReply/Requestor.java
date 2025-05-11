@@ -22,7 +22,7 @@ public class Requestor {
         int length;
 
         try{
-            s = new Socket(dest.dest(), dest.port());
+            s = new Socket(dest.getHost(), dest.port());
             System.out.println("Requestor: Socket " + s);
             oStr = s.getOutputStream();
             oStr.write(data.length);

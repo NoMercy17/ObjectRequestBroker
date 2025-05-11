@@ -1,3 +1,4 @@
+
 package RequestReply;
 
 import Commons.Address;
@@ -16,16 +17,14 @@ public class Replyer {
     private String myName;
     private Address myAddress;
 
-    public Replyer(String name, Address addr) {
+    public Replyer(String name, Address addr) throws IOException {
         this.myName = name;
         this.myAddress = addr;
 
-        try{
-            srvS = new ServerSocket(myAddress.port(), 1000);
-            System.out.println("Replyer Serversocket:" + srvS);
-        }catch(Exception e){
-            System.out.println("Error opening server socket");
-        }
+        // Create server socket and throw exception if it fails
+        // instead of catching and silently continuing
+        this.srvS = new ServerSocket(myAddress.port(), 1000);
+        System.out.println("Replyer Serversocket:" + srvS);
     }
 
     public void receive_transform_send(ByteStreamTransformer t){
@@ -43,7 +42,6 @@ public class Replyer {
             byte[] data = t.transform(buffer);
 
             // send the response
-
             oStr = s.getOutputStream();
             oStr.write(data.length); // first the length
             oStr.write(data);
@@ -53,14 +51,19 @@ public class Replyer {
             isStr.close();
             s.close();
         }catch(IOException e){
-            System.out.println("IOException in receive_transform_and_send_feedback");
+            System.out.println("IOException in receive_transform_and_send_feedback: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
-//    protected void finalize() throws Throwable {
-//        super.finalize();
-//        srvS.close();
-//    }
-
-
+    // It's better to have explicit close method rather than relying on finalize
+    public void close() {
+        try {
+            if (srvS != null && !srvS.isClosed()) {
+                srvS.close();
+            }
+        } catch (IOException e) {
+            System.out.println("Error closing server socket: " + e.getMessage());
+        }
+    }
 }
