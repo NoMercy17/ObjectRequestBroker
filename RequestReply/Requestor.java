@@ -30,7 +30,6 @@ public class Requestor {
             oStr.flush();
 
             // wait for response
-
             isStr = s.getInputStream();
             length = isStr.read();
             buffer = new byte[length];

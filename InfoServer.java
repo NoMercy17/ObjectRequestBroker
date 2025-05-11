@@ -7,19 +7,36 @@ public class InfoServer {
     private final Replyer replyer;
     private static final int PORT = 8090; // Changed from 8080 to 8090
     private static final String SERVER_NAME = "InfoServer";
-
+    private final Address serverAddress;
     public InfoServer() throws IOException {
         try {
-            Address serverAddr = new Address("localhost", PORT);
-            this.replyer = new Replyer(SERVER_NAME, serverAddr);
+            this.serverAddress = new Address("localhost", PORT);
+            this.replyer = new Replyer(SERVER_NAME, serverAddress);
             System.out.println(SERVER_NAME + " started on port " + PORT);
+
+            // we register with NamingService now
+            registerWithNamingService();
         } catch (IOException e) {
             System.err.println("Failed to create server socket: " + e.getMessage());
             throw e; // Re-throw to signal failure
         }
     }
 
-    // Main operation handling method
+    private void registerWithNamingService(){
+        try{
+            ServiceLocator locator = new ServiceLocator();
+            boolean registered = locator.registerServer(SERVER_NAME, serverAddress.getHost(), serverAddress.getPort());
+            if (registered) {
+                System.out.println("Successfully registered with NamingService");
+            }else
+                System.out.println("Failed to register with NamingService");
+
+        }catch(Exception e){
+            System.err.println("Error registering with NamingService: " + e.getMessage());
+        }
+    }
+
+
     public void start() {
         System.out.println("Waiting for requests...");
         ByteStreamTransformer transformer = new InfoServerTransformer();

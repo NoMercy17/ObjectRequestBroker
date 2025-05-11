@@ -8,7 +8,7 @@ import java.net.Socket;
 public class ByteSender {
     private Socket s;
     private String myname;
-    private OutputStream oStr; // we get an output stream from our socket
+    private OutputStream oStr; // we get the output from the socket as an outputStream
 
     public ByteSender(String name) {
         myname = name;

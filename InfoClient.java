@@ -7,16 +7,34 @@ import java.util.Scanner;
 
 public class InfoClient {
     private final Requestor requestor;
-    private final Address serverAddress;
+    private Address serverAddress;
     private final String clientName;
+    private final ServiceLocator serviceLocator;
 
-    public InfoClient(String clientName, String serverHost, int serverPort) {
+    public InfoClient(String clientName) {
         this.clientName = clientName;
-        this.serverAddress = new Address(serverHost, serverPort);
         this.requestor = new Requestor(clientName);
+        this.serviceLocator = new ServiceLocator();
+
+        // Look up the server address at initialization
+        lookupServerAddress();
+    }
+
+    public void lookupServerAddress(){
+        Address address = serviceLocator.lookupServer("InfoServer");
+        if (address != null) {
+            this.serverAddress = address;
+            System.out.println("Found InfoServer at " + address.getHost() + ":" + address.getPort());
+        } else {
+            System.err.println("Could not find InfoServer. Make sure the server is running and registered.");
+        }
     }
 
     public String getRoadInfo(int roadID){
+        if (serverAddress == null) {
+            return "Error: Server address is not available";
+        }
+
         try{
             // request format
             String request = "get_road_info:" + roadID;
@@ -29,11 +47,15 @@ public class InfoClient {
             return new String(responseBytes, StandardCharsets.UTF_8);
 
         }catch(Exception e){
-            return "Errror: " +e.getMessage();
+            return "Error1: " +e.getMessage();
         }
     }
 
     public String getTemp(String city) {
+        if (serverAddress == null) {
+            return "Error: Server address is not available";
+        }
+
         try {
             // Format the request
             String request = "get_temp:" + city;
@@ -45,58 +67,61 @@ public class InfoClient {
             // Convert and return the response
             return new String(responseBytes, StandardCharsets.UTF_8);
         } catch (Exception e) {
-            return "Error: " + e.getMessage();
+            return "Error2: " + e.getMessage();
         }
+    }
+    public String listAvailableServers() {
+        return serviceLocator.listServers();
     }
 
     public static void main(String[] args) {
-        String serverHost = "localhost";
-        int serverPort = 8090;
         String clientName = "InfoClient";
-
-        if(args.length >= 1){
-            serverHost = args[0];
-        }
-        if(args.length >= 2){
-            try{
-                serverPort = Integer.parseInt(args[1]);
-            }catch(NumberFormatException e){
-                System.out.println("Invalid port number");
-            }
-        }
-        InfoClient client = new InfoClient(clientName, serverHost, serverPort);
+        InfoClient client = new InfoClient(clientName);
         Scanner scanner = new Scanner(System.in);
 
-        try{
+        try {
             boolean running = true;
 
-            System.out.println(clientName + " connected to " + serverHost + ":" + serverPort);
+            System.out.println(clientName + " started");
             System.out.println("Available commands:");
             System.out.println("1. road <road_id> - Get road information");
             System.out.println("2. temp <city> - Get temperature for a city");
-            System.out.println("3. exit - Exit the client");
+            System.out.println("3. servers - List all registered servers");
+            System.out.println("4. refresh - Lookup the InfoServer again");
+            System.out.println("5. exit - Exit the client");
 
-            while(running){
-                System.out.println("> ");
+            while (running) {
+                System.out.print("> ");
                 String command = scanner.nextLine().trim();
 
-                if(command.equals("exit")){
+                if (command.equals("exit")) {
                     running = false;
+                    continue;
+                } else if (command.equals("servers")) {
+                    String serverList = client.listAvailableServers();
+                    System.out.println("Registered servers:\n" + serverList);
+                    continue;
+                } else if (command.equals("refresh")) {
+                    client.lookupServerAddress();
+                    continue;
                 }
-                String[] parts = command.split("\\s+", 2); // split the string by whitespace, no more than 2 elements
-                if(parts.length < 2){
+
+                String[] parts = command.split("\\s+", 2);
+                if (parts.length < 2) {
                     System.out.println("Invalid command");
+                    continue;
                 }
 
                 String operation = parts[0];
                 String parameter = parts[1];
                 String result;
-                switch(operation){
+
+                switch (operation) {
                     case "road":
-                        try{
+                        try {
                             int roadID = Integer.parseInt(parameter);
                             result = client.getRoadInfo(roadID);
-                        }catch(NumberFormatException e){
+                        } catch (NumberFormatException e) {
                             result = "Invalid road ID format. Please enter a number.";
                         }
                         break;
@@ -104,14 +129,13 @@ public class InfoClient {
                         result = client.getTemp(parameter);
                         break;
                     default:
-                        result = "Unknwon command";
-
+                        result = "Unknown command";
                 }
+
                 System.out.println(result);
             }
-        }finally {
+        } finally {
             scanner.close();
         }
-
     }
 }

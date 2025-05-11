@@ -9,7 +9,6 @@ public class Address {
         this.port = port;
     }
 
-    // Methods used by ByteSender
     public String getHost() {
         return host;
     }
@@ -18,7 +17,6 @@ public class Address {
         return port;
     }
 
-    // Method used by Replyer (keep for backward compatibility)
     public int port() {
         return port;
     }

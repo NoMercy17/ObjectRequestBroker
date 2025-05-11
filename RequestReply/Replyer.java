@@ -56,7 +56,6 @@ public class Replyer {
         }
     }
 
-    // It's better to have explicit close method rather than relying on finalize
     public void close() {
         try {
             if (srvS != null && !srvS.isClosed()) {
