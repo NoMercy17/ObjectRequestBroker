@@ -8,6 +8,7 @@ public class InfoServer {
     private static final int PORT = 8090; // Changed from 8080 to 8090
     private static final String SERVER_NAME = "InfoServer";
     private final Address serverAddress;
+
     public InfoServer() throws IOException {
         try {
             this.serverAddress = new Address("localhost", PORT);

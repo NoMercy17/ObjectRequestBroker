@@ -7,36 +7,37 @@ import java.util.Map;
 
 public class NamingService {
     private final Replyer replyer;
-    private static final int PORT = 8085;
+    private static final int PORT = 8085; // Fixed port for the NamingService
     private static final String SERVER_NAME = "NamingService";
 
+    // Store registered servers (name -> Address)
     private final Map<String, Address> registeredServers = new HashMap<>();
 
-    public NamingService() throws IOException{
-        try{
+    public NamingService() throws IOException {
+        try {
             Address serverAddr = new Address("localhost", PORT);
             this.replyer = new Replyer(SERVER_NAME, serverAddr);
             System.out.println(SERVER_NAME + " started on port " + PORT);
-        }catch(IOException e){
-            System.err.println("Failed to create NamingService socket: "+ e.getMessage());
+        } catch (IOException e) {
+            System.err.println("Failed to create NamingService socket: " + e.getMessage());
             throw e;
         }
     }
 
-    public void start(){
-        System.out.println("NamingService running. Waiting for requests...");
+    public void start() {
+        System.out.println("NamingService is running. Waiting for requests...");
         ByteStreamTransformer transformer = new NamingServiceTransformer();
 
         try {
             while (true) {
-                // Process incoming requests
                 replyer.receive_transform_send(transformer);
             }
         } catch (Exception e) {
-            System.err.println("Error in server main loop: " + e.getMessage());
+            System.err.println("Error in NamingService main loop: " + e.getMessage());
             e.printStackTrace();
         }
     }
+
     private class NamingServiceTransformer implements ByteStreamTransformer {
         @Override
         public byte[] transform(byte[] request) {
@@ -44,10 +45,6 @@ public class NamingService {
             System.out.println("Received request: " + requestStr);
 
             String[] parts = requestStr.split(":");
-            if (parts.length < 2) {
-                return "Invalid request format".getBytes(StandardCharsets.UTF_8);
-            }
-
             String operation = parts[0];
             String result;
 
@@ -89,7 +86,7 @@ public class NamingService {
     }
 
     private synchronized void registerServer(String serverName, String host, int port) {
-        Address serverAddress = new Address(host,port);
+        Address serverAddress = new Address(host, port);
         registeredServers.put(serverName, serverAddress);
         System.out.println("Registered server: " + serverName + " at " + host + ":" + port);
     }
@@ -97,14 +94,14 @@ public class NamingService {
     private synchronized String lookupServer(String serverName) {
         Address serverAddress = registeredServers.get(serverName);
         if (serverAddress == null) {
-            return "DOESN'T EXIST";
+            return "NOT_FOUND";
         }
         return serverAddress.getHost() + ":" + serverAddress.getPort();
     }
 
     private synchronized String listServers() {
         StringBuilder sb = new StringBuilder();
-        for(Map.Entry<String, Address> entry: registeredServers.entrySet()) {
+        for (Map.Entry<String, Address> entry : registeredServers.entrySet()) {
             sb.append(entry.getKey()).append(" at ")
                     .append(entry.getValue().getHost()).append(":")
                     .append(entry.getValue().getPort()).append("\n");
@@ -121,5 +118,4 @@ public class NamingService {
             e.printStackTrace();
         }
     }
-
 }
